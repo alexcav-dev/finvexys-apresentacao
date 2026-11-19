@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Finvexys Finance — Apresentação do Projeto</title>
+<meta name="description" content="Apresentação acadêmica do projeto Finvexys Finance: aplicação demonstrativa, banco de dados PostgreSQL, telas do sistema e trabalhos do CONTEEX." />
+<link rel="icon" href="assets/finvexys-logo-sidebar-cropped.png" />
+
+<style>
+/* =======================================================================
+ * Finvexys Finance — Site de Apresentação (single-page, estático)
+ * Visão geral objetiva: cada seção = título + breve texto + botão.
+ * O SPLASH permanece APROVADO/intacto.
+ * ===================================================================== */
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('assets/fonts/inter-latin-wght-normal.woff2') format('woff2');
+}
+
+/* ===================== SPLASH APROVADO — não alterar ===================== */
+#splash {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  overflow: hidden; padding: 2.5rem 1.5rem;
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  background-color: #eef4fd;
+  background-image:
+    linear-gradient(rgba(248, 251, 255, 0.8), rgba(238, 244, 253, 0.84)),
+    url('assets/sidebar-bg.webp');
+  background-size: cover; background-position: center; background-repeat: no-repeat;
+  transition: opacity 500ms ease-out, visibility 500ms ease-out; opacity: 1;
+}
+#splash.is-exiting { opacity: 0; visibility: hidden; pointer-events: none; }
+.splash-inner { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 28rem; animation: splash-rise 0.6s ease both; }
+@keyframes splash-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.ring { position: relative; display: grid; place-items: center; width: 14rem; height: 14rem; }
+@media (min-width: 640px) { .ring { width: 16rem; height: 16rem; } }
+.ring__glow { position: absolute; border-radius: 9999px; pointer-events: none; }
+.ring__glow--primary { inset: 1rem; background: color-mix(in srgb, #2563eb 15%, transparent); filter: blur(40px); animation: ring-pulse 3.2s ease-in-out infinite; }
+.ring__glow--cyan { inset: 2rem; background: color-mix(in srgb, #22d3ee 18%, transparent); filter: blur(40px); }
+.ring__svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ring__rotor { transform-origin: 50% 50%; animation: ring-spin 1.5s linear infinite; }
+.ring__logo { position: relative; width: 56%; max-width: 168px; object-fit: contain; filter: drop-shadow(0 1px 1px rgb(15 23 42 / 0.12)); }
+.splash__title { margin-top: 2.5rem; text-align: center; font-size: 1.25rem; font-weight: 700; letter-spacing: -0.015em; color: #0f172a; }
+@media (min-width: 640px) { .splash__title { font-size: 1.5rem; } }
+.splash__subtitle { margin-top: 0.5rem; max-width: 24rem; text-align: center; font-size: 0.875rem; color: #64748b; }
+.splash__skip { margin-top: 1.75rem; font-size: 0.78rem; color: #7c8db0; background: transparent; border: 0; cursor: pointer; letter-spacing: 0.04em; }
+.splash__skip:hover { color: #334155; text-decoration: underline; }
+@keyframes ring-spin { to { transform: rotate(360deg); } }
+@keyframes ring-pulse { 0%, 100% { opacity: 0.45; transform: scale(0.97); } 50% { opacity: 0.8; transform: scale(1.03); } }
+
+/* ===================== Tokens do site (tema claro) ===================== */
+:root {
+  --blue: #2563eb; --blue-600: #1d4ed8; --blue-700: #1e40af; --blue-050: #eef4ff;
+  --cyan: #22d3ee;
+  --ink: #0f172a; --ink-soft: #334155; --ink-muted: #5b6b86;
+  --bg: #e9eef8; --bg-tint: #f3f7ff; --bg-tint-2: #e3ebf9; --surface: #ffffff;
+  --border: #e6ecf7; --border-strong: #d4e0f4;
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.07), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow: 0 10px 28px -14px rgba(15, 23, 42, 0.18), 0 2px 8px -4px rgba(37, 99, 235, 0.08);
+  --shadow-blue: 0 12px 26px -10px rgba(37, 99, 235, 0.45);
+  --radius: 16px; --radius-sm: 11px;
+  --font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --maxw: 1140px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; font-family: var(--font); color: var(--ink); background-color: var(--bg);
+  background-image:
+    radial-gradient(46rem 28rem at 86% -6%, rgba(37, 99, 235, 0.10), transparent 68%),
+    radial-gradient(40rem 26rem at 4% 4%, rgba(34, 211, 238, 0.08), transparent 68%),
+    linear-gradient(180deg, #eef3fb 0%, #e7edf7 60%, #e9eef8 100%);
+  background-attachment: fixed; -webkit-font-smoothing: antialiased; overflow-x: hidden;
+}
+body.is-loading, body.modal-open { overflow: hidden; }
+body.is-loading { height: 100vh; }
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; }
+h1, h2, h3 { line-height: 1.12; letter-spacing: -0.02em; margin: 0; color: var(--ink); }
+.container { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--blue-600); padding: 6px 13px; border-radius: 999px;
+  background: var(--blue-050); border: 1px solid var(--border-strong);
+}
+.eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); }
+
+/* ===================== Botões ===================== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  font-family: var(--font); font-weight: 600; font-size: 0.94rem;
+  padding: 11px 19px; border-radius: 11px; border: 1px solid transparent; cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.22s ease, background 0.22s ease, border-color 0.22s ease, color 0.22s ease;
+  white-space: nowrap;
+}
+.btn svg { width: 17px; height: 17px; }
+.btn-primary { color: #fff; background: linear-gradient(135deg, var(--blue) 0%, var(--blue-600) 100%); box-shadow: var(--shadow-blue); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 16px 30px -10px rgba(37, 99, 235, 0.55); }
+.btn-ghost { color: var(--ink-soft); background: #fff; border-color: var(--border-strong); box-shadow: var(--shadow-xs); }
+.btn-ghost:hover { border-color: var(--blue); color: var(--blue-600); background: var(--blue-050); }
+.btn-sm { padding: 9px 15px; font-size: 0.88rem; }
+.btn-block { width: 100%; }
+
+/* ===================== Cabeçalho ===================== */
+.site-header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 60; transform: translateY(-100%);
+  transition: transform 0.4s ease, background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  border-bottom: 1px solid transparent; background: rgba(255, 255, 255, 0.72); backdrop-filter: blur(12px);
+}
+.site-header.revealed { transform: translateY(0); }
+.site-header.scrolled { background: rgba(255, 255, 255, 0.9); border-bottom-color: var(--border); box-shadow: 0 8px 24px -18px rgba(15,23,42,0.25); }
+.nav { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+.brand { display: flex; align-items: center; gap: 11px; font-weight: 700; color: var(--ink); }
+.brand img { height: 42px; width: auto; border-radius: 10px; box-shadow: var(--shadow-xs); }
+.brand span { font-size: 1.08rem; }
+.brand span b { color: var(--blue-600); }
+.nav-links { display: flex; align-items: center; gap: 24px; }
+.nav-links a { font-size: 0.92rem; color: var(--ink-muted); font-weight: 500; transition: color 0.2s ease; }
+.nav-links a:hover { color: var(--blue-600); }
+@media (max-width: 860px) { .nav-links { display: none; } }
+
+/* ===================== HERO (enxuto) ===================== */
+.hero { position: relative; padding: 130px 0 70px; }
+.hero::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, var(--bg-tint) 0%, rgba(255,255,255,0) 62%); }
+.hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 54px; align-items: center; }
+@media (max-width: 920px) { .hero-grid { grid-template-columns: 1fr; gap: 40px; } .hero { padding-top: 112px; } }
+.hero h1 { font-size: clamp(2.3rem, 4.6vw, 3.4rem); font-weight: 800; margin-top: 18px; }
+.hero h1 .accent { color: var(--blue-600); }
+.hero .lede { font-size: clamp(1.02rem, 2vw, 1.2rem); color: var(--ink-soft); margin-top: 16px; max-width: 42ch; font-weight: 500; line-height: 1.5; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+
+.hero-visual { display: grid; place-items: center; }
+/* Anel luminoso (reaproveita a identidade do Splash) — logo sobre o fundo claro, sem caixa escura */
+.hero-ring { position: relative; display: grid; place-items: center; width: min(340px, 80vw); aspect-ratio: 1; }
+.hero-ring__glow { position: absolute; border-radius: 9999px; pointer-events: none; }
+.hero-ring__glow--primary { inset: 14%; background: color-mix(in srgb, #2563eb 11%, transparent); filter: blur(34px); animation: ring-pulse 3.6s ease-in-out infinite; }
+.hero-ring__glow--cyan { inset: 22%; background: color-mix(in srgb, #22d3ee 13%, transparent); filter: blur(34px); }
+.hero-ring__svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hero-ring__rotor { transform-origin: 50% 50%; animation: ring-spin 4s linear infinite; }
+.hero-ring__logo { position: relative; width: 52%; max-width: 184px; object-fit: contain; filter: drop-shadow(0 8px 20px rgba(15, 23, 42, 0.18)); }
+@media (max-width: 920px) { .hero-ring { width: min(280px, 72vw); } }
+
+/* ===================== EXPLORE — cards de navegação ===================== */
+.explore { padding: 48px 0 92px; }
+.explore__head { max-width: 640px; margin-bottom: 34px; }
+.explore__head h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800; margin-top: 12px; }
+.explore__head p { color: var(--ink-muted); font-size: 1.02rem; line-height: 1.6; margin-top: 12px; }
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+@media (max-width: 940px) { .cards { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .cards { grid-template-columns: 1fr; } }
+
+.ncard {
+  position: relative; display: flex; flex-direction: column;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow-sm); padding: 24px 22px 22px; scroll-margin-top: 90px;
+  transition: transform 0.18s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+.ncard:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--border-strong); }
+.ncard__ic { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--blue-050); border: 1px solid var(--border-strong); margin-bottom: 16px; }
+.ncard__ic svg { width: 21px; height: 21px; color: var(--blue-600); }
+.ncard__tag { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-muted); }
+.ncard h3 { font-size: 1.18rem; font-weight: 800; margin: 7px 0 9px; }
+.ncard p { color: var(--ink-muted); font-size: 0.92rem; line-height: 1.55; margin: 0 0 20px; }
+.ncard .btn { margin-top: auto; }
+
+.ncard--feature { border-color: var(--border-strong); background: linear-gradient(180deg, #f6f9ff 0%, #ffffff 42%); box-shadow: var(--shadow); }
+.ncard--feature::after { content: "Destaque"; position: absolute; top: 18px; right: 18px; font-size: 0.64rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; background: var(--blue-600); padding: 4px 10px; border-radius: 999px; }
+.ncard--feature .ncard__ic { background: var(--blue-600); border-color: var(--blue-600); }
+.ncard--feature .ncard__ic svg { color: #fff; }
+
+/* ===================== Modais ===================== */
+.modal { position: fixed; inset: 0; z-index: 110; display: none; align-items: flex-start; justify-content: center; padding: 6vh 20px 20px; background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(5px); }
+.modal.open { display: flex; }
+.modal__panel { width: 100%; max-width: 940px; max-height: 86vh; overflow: auto; background: #fff; border-radius: 18px; box-shadow: 0 40px 90px -30px rgba(15,23,42,0.5); border: 1px solid var(--border); animation: modal-in 0.28s ease both; }
+@keyframes modal-in { from { opacity: 0; transform: translateY(14px) scale(0.99); } to { opacity: 1; transform: none; } }
+.modal__head { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 22px; background: rgba(255,255,255,0.94); backdrop-filter: blur(6px); border-bottom: 1px solid var(--border); }
+.modal__head .ttl { display: flex; flex-direction: column; gap: 3px; }
+.modal__head .ttl .k { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue-600); }
+.modal__head .ttl h3 { font-size: 1.15rem; font-weight: 800; }
+.modal__close { flex: none; width: 38px; height: 38px; border-radius: 10px; background: #fff; border: 1px solid var(--border-strong); color: var(--ink); font-size: 1.3rem; cursor: pointer; display: grid; place-items: center; }
+.modal__close:hover { background: var(--blue-050); color: var(--blue-600); }
+.modal__body { padding: 22px; }
+.modal__lead { color: var(--ink-muted); font-size: 0.96rem; line-height: 1.6; margin: 0 0 20px; max-width: 64ch; }
+.modal__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+
+/* Galeria (evidências / telas) */
+.gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+.gallery--3 { grid-template-columns: repeat(3, 1fr); }
+.gallery--1 { grid-template-columns: 1fr; }
+@media (max-width: 680px) { .gallery, .gallery--3 { grid-template-columns: 1fr; } }
+.gitem { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); background: #fff; box-shadow: var(--shadow-xs); }
+.gitem__frame { position: relative; aspect-ratio: 16/11; display: grid; place-items: center; text-align: center; padding: 18px; background: linear-gradient(160deg, #f7faff, #eef3fc); }
+.gitem--wide .gitem__frame { aspect-ratio: 16/10; }
+.gitem__frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
+.gitem__ph { display: flex; flex-direction: column; align-items: center; gap: 9px; color: var(--ink-muted); }
+.gitem__ph svg { width: 34px; height: 34px; color: var(--blue); opacity: 0.5; }
+.gitem__ph .t { font-weight: 600; color: var(--ink-soft); font-size: 0.9rem; }
+.gitem__ph .n { font-size: 0.75rem; max-width: 26ch; line-height: 1.45; }
+.gitem__cap { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-top: 1px solid var(--border); }
+.gitem__cap .label { font-size: 0.86rem; font-weight: 600; }
+.gitem__cap .zoom { display: inline-flex; align-items: center; gap: 6px; font-size: 0.79rem; font-weight: 600; color: var(--blue-600); background: transparent; border: 0; cursor: pointer; opacity: 0.45; }
+.gitem__cap .zoom[data-ready="true"] { opacity: 1; }
+.gitem__cap .zoom svg { width: 14px; height: 14px; }
+
+/* CONTEEX — banner dentro do modal */
+.conteex-banner { position: relative; border-radius: 18px; overflow: hidden; border: 1px solid var(--border-strong); background: radial-gradient(70% 140% at 100% 0%, rgba(34,211,238,0.12), transparent 60%), linear-gradient(135deg, #eef4ff 0%, #e2ecff 55%, #edf4ff 100%); }
+.conteex-banner::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: linear-gradient(180deg, var(--blue), var(--cyan)); }
+.conteex-inner { position: relative; display: grid; grid-template-columns: 1fr auto; gap: 28px; align-items: center; padding: 30px 32px 30px 36px; }
+@media (max-width: 700px) { .conteex-inner { grid-template-columns: 1fr; padding: 26px 22px 26px 26px; } }
+.conteex-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; background: var(--blue-600); padding: 6px 12px; border-radius: 999px; }
+.conteex-inner h4 { font-size: clamp(1.3rem, 2.6vw, 1.8rem); font-weight: 800; margin: 14px 0 0; color: var(--ink); line-height: 1.2; }
+.conteex-inner p { color: var(--ink-soft); font-size: 0.96rem; line-height: 1.58; margin-top: 12px; max-width: 54ch; }
+.conteex-meta { margin-top: 14px; font-size: 0.84rem; color: var(--ink-muted); }
+.conteex-seal { width: 118px; height: 118px; border-radius: 50%; display: grid; place-items: center; text-align: center; color: #fff; font-weight: 800; letter-spacing: 0.06em; line-height: 1.3; font-size: 0.95rem; background: linear-gradient(145deg, var(--blue), var(--blue-700)); box-shadow: var(--shadow-blue), inset 0 0 0 4px rgba(255,255,255,0.18); }
+.conteex-seal small { display: block; font-size: 0.55rem; font-weight: 600; letter-spacing: 0.2em; opacity: 0.85; margin-top: 4px; }
+
+/* Documento (artigo) */
+.doc { margin-top: 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 18px; border: 1px dashed var(--border-strong); border-radius: 14px; background: var(--bg-tint); }
+.doc__ic { flex: none; width: 46px; height: 46px; border-radius: 11px; display: grid; place-items: center; background: #fff; border: 1px solid var(--border); }
+.doc__ic svg { width: 22px; height: 22px; color: var(--blue-600); }
+.doc__txt { flex: 1 1 200px; }
+.doc__txt strong { display: block; font-size: 0.96rem; }
+.doc__txt span { font-size: 0.82rem; color: var(--ink-muted); }
+
+/* ===================== Footer ===================== */
+footer.site-footer { border-top: 1px solid var(--border); padding: 30px 0; background: var(--bg-tint); }
+.footer-inner { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; }
+.footer-inner .brand img { height: 50px; border-radius: 11px; }
+.footer-inner .brand span { font-size: 1.14rem; }
+.footer-inner .brand span b { color: var(--blue-600); }
+.footer-inner p { color: var(--ink-muted); font-size: 0.84rem; margin: 0; }
+
+/* ===================== Visualizador de PDF (local) ===================== */
+.pdfviewer { margin-top: 20px; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: #fff; box-shadow: var(--shadow-xs); }
+.pdfviewer__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 11px 14px; border-bottom: 1px solid var(--border); background: var(--bg-tint); }
+.pdfviewer__bar .ttl { display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 700; color: var(--ink); }
+.pdfviewer__bar .ttl svg { width: 17px; height: 17px; color: var(--blue-600); }
+.pdfviewer__tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pdfviewer__stage { position: relative; width: 100%; height: min(68vh, 600px); background: #eef2f8; }
+.pdfviewer__stage iframe { width: 100%; height: 100%; border: 0; display: block; }
+.pdfviewer__stage:fullscreen { height: 100vh; width: 100vw; background: #1b2436; }
+.pdfviewer__stage:fullscreen iframe { height: 100%; }
+.pdfviewer__pending, .gallery-state { padding: 30px 22px; text-align: center; color: var(--ink-muted); }
+.pdfviewer__pending svg, .gallery-state svg { width: 34px; height: 34px; color: var(--blue); opacity: 0.55; margin: 0 auto 10px; display: block; }
+.pdfviewer__pending .t, .gallery-state .t { font-weight: 600; color: var(--ink-soft); font-size: 0.94rem; }
+.pdfviewer__pending code, .gallery-state code { font-size: 0.82rem; color: var(--blue-700); background: var(--blue-050); padding: 2px 7px; border-radius: 6px; }
+
+/* Banner em imagem (ampliável) */
+.banner-slot { margin-bottom: 16px; }
+.banner-slot img { width: 100%; border-radius: 14px; border: 1px solid var(--border); cursor: zoom-in; box-shadow: var(--shadow-xs); }
+
+.gallery-state { border: 1px dashed var(--border-strong); border-radius: 14px; background: var(--bg-tint); }
+
+/* ===================== Lightbox (com navegação) ===================== */
+.lightbox { position: fixed; inset: 0; z-index: 130; display: none; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.72); backdrop-filter: blur(5px); padding: 30px; }
+.lightbox.open { display: flex; }
+.lightbox__fig { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 94vw; }
+.lightbox__fig img { max-width: 92vw; max-height: 82vh; border-radius: 12px; border: 3px solid #fff; box-shadow: 0 30px 80px rgba(15,23,42,0.5); background: #fff; }
+.lightbox__cap { color: #eaf0fe; font-size: 0.9rem; font-weight: 500; }
+.lightbox__close { position: absolute; top: 22px; right: 26px; width: 42px; height: 42px; border-radius: 50%; background: #fff; border: 1px solid var(--border-strong); color: var(--ink); font-size: 1.4rem; cursor: pointer; display: grid; place-items: center; box-shadow: var(--shadow); z-index: 2; }
+.lightbox__close:hover { background: var(--blue-050); }
+.lightbox__nav { position: absolute; top: 50%; transform: translateY(-50%); width: 48px; height: 48px; border-radius: 50%; background: rgba(255,255,255,0.92); border: 1px solid var(--border-strong); color: var(--ink); cursor: pointer; display: none; place-items: center; box-shadow: var(--shadow); }
+.lightbox.has-nav .lightbox__nav { display: grid; }
+.lightbox__nav svg { width: 22px; height: 22px; }
+.lightbox__nav:hover { background: #fff; color: var(--blue-600); }
+.lightbox__nav--prev { left: 18px; }
+.lightbox__nav--next { right: 18px; }
+@media (max-width: 560px) { .lightbox__nav--prev { left: 8px; } .lightbox__nav--next { right: 8px; } }
+
+/* ===================== Reveal ===================== */
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.in { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  .reveal { opacity: 1; transform: none; }
+}
+</style>
+</head>
+
+<body class="is-loading">
+
+<!-- ===================== A. SPLASH — APROVADO (não alterar) ===================== -->
+<div id="splash" role="status" aria-live="polite" aria-label="Carregando a apresentação Finvexys Finance">
+  <div class="splash-inner">
+    <div class="ring">
+      <div class="ring__glow ring__glow--primary" aria-hidden="true"></div>
+      <div class="ring__glow ring__glow--cyan" aria-hidden="true"></div>
+      <svg class="ring__svg" viewBox="0 0 100 100" aria-hidden="true">
+        <defs>
+          <linearGradient id="splash-arc" gradientUnits="userSpaceOnUse" x1="6" y1="50" x2="94" y2="50">
+            <stop offset="0%" stop-color="#0a1f6b" /><stop offset="50%" stop-color="#1a73ff" /><stop offset="100%" stop-color="#33e6ff" />
+          </linearGradient>
+        </defs>
+        <circle cx="50" cy="50" r="47.5" fill="none" stroke-width="0.75" stroke="rgba(34,211,238,0.20)" />
+        <circle cx="50" cy="50" r="44" fill="none" stroke-width="3.5" stroke="rgba(37,99,235,0.12)" />
+        <circle cx="50" cy="50" r="40.5" fill="none" stroke-width="0.75" stroke="rgba(37,99,235,0.10)" />
+        <g class="ring__rotor">
+          <circle cx="50" cy="50" r="44" fill="none" stroke="url(#splash-arc)" stroke-width="15.5" stroke-linecap="round" pathLength="100" stroke-dasharray="72 28" opacity="0.07" />
+          <circle cx="50" cy="50" r="44" fill="none" stroke="url(#splash-arc)" stroke-width="8.8" stroke-linecap="round" pathLength="100" stroke-dasharray="72 28" opacity="0.18" />
+          <circle cx="50" cy="50" r="44" fill="none" stroke="url(#splash-arc)" stroke-width="2.6" stroke-linecap="round" pathLength="100" stroke-dasharray="72 28" />
+          <circle cx="41.8" cy="6.8" r="7.8" fill="#bfffff" opacity="0.12" />
+          <circle cx="41.8" cy="6.8" r="4.4" fill="#bfffff" opacity="0.30" />
+          <circle cx="41.8" cy="6.8" r="2.1" fill="#bfffff" />
+        </g>
+      </svg>
+      <img class="ring__logo" src="assets/finvexys-logo-sidebar-cropped.png" alt="Finvexys Finance" />
+    </div>
+    <h1 class="splash__title">Finvexys Finance</h1>
+    <p class="splash__subtitle">Apresentação acadêmica — carregando ambiente de demonstração…</p>
+    <button class="splash__skip" id="skipSplash" type="button">Pular introdução →</button>
+  </div>
+</div>
+
+<!-- ===================== Cabeçalho ===================== -->
+<header class="site-header" id="header">
+  <div class="container nav">
+    <a class="brand" href="#top" aria-label="Finvexys Finance">
+      <img src="assets/finvexys-logo-sidebar-cropped.png" alt="" />
+      <span>Finvexys <b>Finance</b></span>
+    </a>
+    <a class="btn btn-primary btn-sm" href="https://finvexys-finance.vercel.app" target="_blank" rel="noopener">Acessar demonstração</a>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ===================== HERO ===================== -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <span class="eyebrow">Projeto acadêmico</span>
+        <h1>Finvexys <span class="accent">Finance</span></h1>
+        <p class="lede">Plataforma de gestão financeira: banco de dados PostgreSQL, aplicação web e trabalhos do CONTEEX.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://finvexys-finance.vercel.app" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+            Acessar aplicação demonstrativa
+          </a>
+          <a class="btn btn-ghost" href="#explore">Ver conteúdo</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-ring">
+          <div class="hero-ring__glow hero-ring__glow--primary" aria-hidden="true"></div>
+          <div class="hero-ring__glow hero-ring__glow--cyan" aria-hidden="true"></div>
+          <svg class="hero-ring__svg" viewBox="0 0 100 100" aria-hidden="true">
+            <defs>
+              <linearGradient id="hero-arc" gradientUnits="userSpaceOnUse" x1="6" y1="50" x2="94" y2="50">
+                <stop offset="0%" stop-color="#0a1f6b" /><stop offset="50%" stop-color="#1a73ff" /><stop offset="100%" stop-color="#33e6ff" />
+              </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="47.5" fill="none" stroke-width="0.75" stroke="rgba(34,211,238,0.20)" />
+            <circle cx="50" cy="50" r="44" fill="none" stroke-width="3.5" stroke="rgba(37,99,235,0.12)" />
+            <circle cx="50" cy="50" r="40.5" fill="none" stroke-width="0.75" stroke="rgba(37,99,235,0.10)" />
+            <g class="hero-ring__rotor">
+              <circle cx="50" cy="50" r="44" fill="none" stroke="url(#hero-arc)" stroke-width="12" stroke-linecap="round" pathLength="100" stroke-dasharray="72 28" opacity="0.07" />
+              <circle cx="50" cy="50" r="44" fill="none" stroke="url(#hero-arc)" stroke-width="7" stroke-linecap="round" pathLength="100" stroke-dasharray="72 28" opacity="0.16" />
+              <circle cx="50" cy="50" r="44" fill="none" stroke="url(#hero-arc)" stroke-width="2.4" stroke-linecap="round" pathLength="100" stroke-dasharray="72 28" />
+              <circle cx="41.8" cy="6.8" r="7" fill="#bfffff" opacity="0.12" />
+              <circle cx="41.8" cy="6.8" r="4" fill="#bfffff" opacity="0.30" />
+              <circle cx="41.8" cy="6.8" r="2" fill="#bfffff" />
+            </g>
+          </svg>
+          <img class="hero-ring__logo" src="assets/finvexys-logo-sidebar-cropped.png" alt="Logo Finvexys Finance" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== EXPLORE — visão geral objetiva ===================== -->
+  <section class="explore" id="explore">
+    <div class="container">
+      <div class="explore__head reveal">
+        <span class="eyebrow">Conteúdo da apresentação</span>
+        <h2>Acesse cada material em poucos cliques</h2>
+        <p>Uma visão geral objetiva. Os detalhes — aplicação, evidências, telas e artigos — abrem pelos botões abaixo.</p>
+      </div>
+
+      <div class="cards">
+        <!-- 1. Projeto -->
+        <article class="ncard reveal" id="projeto">
+          <div class="ncard__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+          <span class="ncard__tag">Projeto</span>
+          <h3>Aplicação demonstrativa</h3>
+          <p>A plataforma Finvexys Finance em funcionamento, para explorar ao vivo.</p>
+          <a class="btn btn-primary btn-block" href="https://finvexys-finance.vercel.app" target="_blank" rel="noopener">
+            Acessar aplicação
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+          </a>
+        </article>
+
+        <!-- 2. Banco de dados -->
+        <article class="ncard reveal" id="banco">
+          <div class="ncard__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5"/><path d="M3 12c0 1.7 4 3 9 3s9-1.3 9-3"/></svg></div>
+          <span class="ncard__tag">PostgreSQL</span>
+          <h3>Banco de dados</h3>
+          <p>Imagens reais da estrutura de tabelas e dos registros implementados.</p>
+          <button class="btn btn-ghost btn-block" type="button" data-open="modal-banco">Ver evidências</button>
+        </article>
+
+        <!-- 3. CONTEEX — Trabalho 2 (destaque) -->
+        <article class="ncard ncard--feature reveal" id="conteex">
+          <div class="ncard__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 14.8 7.2 17l.9-5.4L4.2 7.7l5.4-.8z"/></svg></div>
+          <span class="ncard__tag">CONTEEX · Trabalho 2</span>
+          <h3>Segundo trabalho</h3>
+          <p>Banner e artigo completo do segundo trabalho apresentado no CONTEEX.</p>
+          <button class="btn btn-primary btn-block" type="button" data-open="modal-t2">Abrir trabalho 2</button>
+        </article>
+
+        <!-- 4. Demonstração / Telas -->
+        <article class="ncard reveal" id="telas">
+          <div class="ncard__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg></div>
+          <span class="ncard__tag">Demonstração</span>
+          <h3>Telas do sistema</h3>
+          <p>Galeria com as capturas reais das principais telas da aplicação.</p>
+          <button class="btn btn-ghost btn-block" type="button" data-open="modal-demo">Ver telas</button>
+        </article>
+
+        <!-- 5. Planejamento / Roadmap -->
+        <article class="ncard reveal">
+          <div class="ncard__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6 3 9v12l6-3 6 3 6-3V6l-6 3z"/><path d="M9 6v12M15 9v12"/></svg></div>
+          <span class="ncard__tag">Planejamento</span>
+          <h3>Roadmap do projeto</h3>
+          <p>Planejamento e etapas de evolução do Finvexys Finance.</p>
+          <button class="btn btn-ghost btn-block" type="button" data-open="modal-roadmap">Ver roadmap</button>
+        </article>
+
+        <!-- 6. CONTEEX — Trabalho 1 -->
+        <article class="ncard reveal">
+          <div class="ncard__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h11l5 5v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M14 4v5h5"/></svg></div>
+          <span class="ncard__tag">CONTEEX · Trabalho 1</span>
+          <h3>Primeiro trabalho</h3>
+          <p>Banner e artigo completo do primeiro trabalho apresentado no CONTEEX.</p>
+          <button class="btn btn-ghost btn-block" type="button" data-open="modal-t1">Abrir trabalho 1</button>
+        </article>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <a class="brand" href="#top">
+      <img src="assets/finvexys-logo-sidebar-cropped.png" alt="" />
+      <span>Finvexys <b>Finance</b></span>
+    </a>
+    <p>Apresentação acadêmica · Material estritamente demonstrativo do Finvexys Finance.</p>
+  </div>
+</footer>
+
+<!-- ===================== MODAIS ===================== -->
+
+<!-- Banco de dados -->
+<div class="modal" id="modal-banco" role="dialog" aria-modal="true" aria-labelledby="t-banco">
+  <div class="modal__panel">
+    <div class="modal__head">
+      <div class="ttl"><span class="k">PostgreSQL</span><h3 id="t-banco">Banco de dados — evidências</h3></div>
+      <button class="modal__close" type="button" data-close aria-label="Fechar">×</button>
+    </div>
+    <div class="modal__body">
+      <p class="modal__lead">Estrutura de tabelas e registros reais do banco PostgreSQL. Apresentados por imagem, sem consulta ao vivo.</p>
+      <div class="gallery-dyn" data-gallery="evidencias"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Demonstração / Telas -->
+<div class="modal" id="modal-demo" role="dialog" aria-modal="true" aria-labelledby="t-demo">
+  <div class="modal__panel">
+    <div class="modal__head">
+      <div class="ttl"><span class="k">Demonstração</span><h3 id="t-demo">Telas do sistema</h3></div>
+      <button class="modal__close" type="button" data-close aria-label="Fechar">×</button>
+    </div>
+    <div class="modal__body">
+      <p class="modal__lead">Capturas reais das principais telas do Finvexys Finance.</p>
+      <div class="gallery-dyn" data-gallery="telas"></div>
+      <div class="modal__actions">
+        <a class="btn btn-primary" href="https://finvexys-finance.vercel.app" target="_blank" rel="noopener">
+          Acessar aplicação ao vivo
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Planejamento / Roadmap -->
+<div class="modal" id="modal-roadmap" role="dialog" aria-modal="true" aria-labelledby="t-roadmap">
+  <div class="modal__panel">
+    <div class="modal__head">
+      <div class="ttl"><span class="k">Planejamento</span><h3 id="t-roadmap">Roadmap do projeto</h3></div>
+      <button class="modal__close" type="button" data-close aria-label="Fechar">×</button>
+    </div>
+    <div class="modal__body">
+      <p class="modal__lead">Planejamento e etapas de evolução do projeto Finvexys Finance.</p>
+      <div class="gallery-dyn" data-gallery="planejamento"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTEEX — Trabalho 2 (destaque) -->
+<div class="modal" id="modal-t2" role="dialog" aria-modal="true" aria-labelledby="t-t2">
+  <div class="modal__panel">
+    <div class="modal__head">
+      <div class="ttl"><span class="k">CONTEEX · Trabalho 2</span><h3 id="t-t2">Segundo trabalho</h3></div>
+      <button class="modal__close" type="button" data-close aria-label="Fechar">×</button>
+    </div>
+    <div class="modal__body">
+      <div class="conteex-banner">
+        <div class="conteex-inner">
+          <div>
+            <span class="conteex-badge">Destaque · CONTEEX</span>
+            <h4>Segundo trabalho apresentado no CONTEEX</h4>
+            <p>Resultados e evolução da plataforma Finvexys Finance.</p>
+            <div class="conteex-meta">Autores: a definir · Orientação: a definir</div>
+          </div>
+          <div class="conteex-seal" aria-hidden="true">CONTEEX<small>EVENTO</small></div>
+        </div>
+      </div>
+      <div class="banner-slot" data-banner="public/materiais/conteex/trabalho-2/BANNER_FINVEXYS_2_CONTEX.jpeg"></div>
+      <div class="pdfviewer" data-pdf="public/materiais/conteex/trabalho-2/ARTIGO_FINVEXYS_FINANCE_2_CONTEX.pdf" data-dl="Finvexys-CONTEEX-Trabalho-2.pdf"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTEEX — Trabalho 1 -->
+<div class="modal" id="modal-t1" role="dialog" aria-modal="true" aria-labelledby="t-t1">
+  <div class="modal__panel">
+    <div class="modal__head">
+      <div class="ttl"><span class="k">CONTEEX · Trabalho 1</span><h3 id="t-t1">Primeiro trabalho</h3></div>
+      <button class="modal__close" type="button" data-close aria-label="Fechar">×</button>
+    </div>
+    <div class="modal__body">
+      <div class="conteex-banner">
+        <div class="conteex-inner">
+          <div>
+            <span class="conteex-badge">CONTEEX</span>
+            <h4>Primeiro trabalho apresentado no CONTEEX</h4>
+            <p>Fundamentação do projeto e da plataforma Finvexys Finance.</p>
+            <div class="conteex-meta">Autores: a definir · Orientação: a definir</div>
+          </div>
+          <div class="conteex-seal" aria-hidden="true">CONTEEX<small>EVENTO</small></div>
+        </div>
+      </div>
+      <div class="banner-slot" data-banner="public/materiais/conteex/trabalho-1/BANNER_FINVEXYS_1_CONTEX.jpeg"></div>
+      <div class="pdfviewer" data-pdf="public/materiais/conteex/trabalho-1/ARTIGO_FINVEXYS_FINANCE_1_CONTEX.pdf" data-dl="Finvexys-CONTEEX-Trabalho-1.pdf"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox (galeria navegável) -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Imagem ampliada">
+  <button class="lightbox__close" id="lightboxClose" aria-label="Fechar">×</button>
+  <button class="lightbox__nav lightbox__nav--prev" id="lightboxPrev" type="button" aria-label="Imagem anterior">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>
+  <button class="lightbox__nav lightbox__nav--next" id="lightboxNext" type="button" aria-label="Próxima imagem">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+  </button>
+  <figure class="lightbox__fig">
+    <img id="lightboxImg" src="" alt="" />
+    <figcaption class="lightbox__cap" id="lightboxCap"></figcaption>
+  </figure>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- Entrada sempre no topo absoluto (sem restauração de scroll do navegador) ---- */
+  if ('scrollRestoration' in history) { try { history.scrollRestoration = 'manual'; } catch (e) {} }
+  function toTop() { window.scrollTo(0, 0); }
+  toTop();
+  window.addEventListener('load', toTop);
+
+  /* ---- Splash (aprovado) ---- */
+  var splash = document.getElementById('splash');
+  var header = document.getElementById('header');
+  var skip = document.getElementById('skipSplash');
+  var dismissed = false;
+  function endSplash() {
+    if (dismissed) return; dismissed = true;
+    splash.classList.add('is-exiting');
+    document.body.classList.remove('is-loading');
+    toTop();
+    if (window.requestAnimationFrame) requestAnimationFrame(toTop);
+    header.classList.add('revealed');
+    setTimeout(function () { if (splash && splash.parentNode) splash.style.display = 'none'; }, 600);
+  }
+  var hold = reduce ? 1200 : 5000;
+  var timer = setTimeout(endSplash, hold);
+  if (skip) skip.addEventListener('click', function () { clearTimeout(timer); endSplash(); });
+
+  /* ---- Header scrolled ---- */
+  function onScroll() { if (window.scrollY > 16) header.classList.add('scrolled'); else header.classList.remove('scrolled'); }
+  window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+  /* ---- Reveal ---- */
+  var items = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window && !reduce) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    items.forEach(function (el) { io.observe(el); });
+  } else { items.forEach(function (el) { el.classList.add('in'); }); }
+
+  /* ---- Utilidades e materiais locais (public/materiais/) ---- */
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  /* Codifica apenas o nome do arquivo (último segmento) — trata espaços e acentos. */
+  function encPath(p) { var a = String(p).split('/'); return a.map(function (s, i) { return i < a.length - 1 ? s : encodeURIComponent(s); }).join('/'); }
+  function probeImg(src) { return new Promise(function (res) { var im = new Image(); im.onload = function () { res(src); }; im.onerror = function () { res(null); }; im.src = src; }); }
+  var GALLERIES = {
+    evidencias: { dir: 'public/materiais/banco-de-dados/', files: [
+      ['BANCO DE DADOS_COMPANIES.jpeg', 'Empresas (companies)'],
+      ['BANCO DE DADOS_COMPANIES-.jpeg', 'Empresas — detalhe'],
+      ['BANCO DE DADOS_LISTAGEM.jpeg', 'Listagem'],
+      ['BANCO DE DADOS_TRANSCATIONS.jpeg', 'Transações (transactions)']
+    ] },
+    telas: { dir: 'public/materiais/aplicacao/', files: [
+      ['FINVEXYS_INICIO.jpeg', 'Início'],
+      ['FINVEXYS_BOLETOS.jpeg', 'Boletos'],
+      ['FINVEXYS_FINANCEIRO_DETALHADO.jpeg', 'Financeiro detalhado'],
+      ['FINVEXYS_CONFIGURAÇÃO.jpeg', 'Configuração']
+    ] },
+    planejamento: { dir: 'public/materiais/planejamento/', files: [
+      ['FINVEXYS_ROADMAP.jpeg', 'Roadmap do projeto']
+    ] }
+  };
+  var ZOOM_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3M11 8v6M8 11h6"/></svg>';
+
+  /* ---- Lightbox (galeria navegável) ---- */
+  var lb = document.getElementById('lightbox');
+  var lbImg = document.getElementById('lightboxImg');
+  var lbCap = document.getElementById('lightboxCap');
+  var lbClose = document.getElementById('lightboxClose');
+  var lbPrev = document.getElementById('lightboxPrev');
+  var lbNext = document.getElementById('lightboxNext');
+  var lbList = [], lbIndex = 0;
+  function lbRender() { var it = lbList[lbIndex]; if (!it) return; lbImg.src = it.src; lbImg.alt = it.label || ''; lbCap.textContent = it.label || ''; }
+  function openLightbox(list, i) { lbList = list; lbIndex = i || 0; lbRender(); lb.classList.toggle('has-nav', lbList.length > 1); lb.classList.add('open'); }
+  function closeLightbox() { lb.classList.remove('open'); lbImg.src = ''; }
+  function lbNav(d) { if (!lbList.length) return; lbIndex = (lbIndex + d + lbList.length) % lbList.length; lbRender(); }
+  lbClose.addEventListener('click', closeLightbox);
+  lbPrev.addEventListener('click', function () { lbNav(-1); });
+  lbNext.addEventListener('click', function () { lbNav(1); });
+  lb.addEventListener('click', function (e) { if (e.target === lb || e.target.classList.contains('lightbox__fig')) closeLightbox(); });
+
+  /* ---- Galerias dinâmicas (imagens locais) ---- */
+  function galleryStateHTML(dir) {
+    return '<div class="gallery-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="m3 16 5-5 4 4 3-3 6 6"/><circle cx="8.5" cy="8.5" r="1.5"/></svg><div class="t">Nenhuma imagem adicionada ainda.</div><div>Coloque os arquivos em <code>' + esc(dir) + '</code> (veja o README da pasta).</div></div>';
+  }
+  function buildGallery(container) {
+    if (container.dataset.built) return; container.dataset.built = '1';
+    var cfg = GALLERIES[container.getAttribute('data-gallery')]; if (!cfg) return;
+    container.innerHTML = '<div class="gallery-state">Carregando materiais…</div>';
+    Promise.all(cfg.files.map(function (f) { var src = encPath(cfg.dir + f[0]); return probeImg(src).then(function (ok) { return ok ? { src: src, label: f[1] } : null; }); }))
+      .then(function (found) {
+        var list = found.filter(Boolean);
+        if (!list.length) { container.innerHTML = galleryStateHTML(cfg.dir); return; }
+        var g = document.createElement('div');
+        g.className = 'gallery' + (list.length === 1 ? ' gallery--1' : (list.length >= 3 ? ' gallery--3' : ''));
+        list.forEach(function (item, i) {
+          var fig = document.createElement('figure'); fig.className = 'gitem'; fig.style.margin = '0';
+          fig.innerHTML = '<div class="gitem__frame"><img src="' + esc(item.src) + '" alt="' + esc(item.label) + '"></div>' +
+            '<figcaption class="gitem__cap"><span class="label">' + esc(item.label) + '</span>' +
+            '<button class="zoom" data-ready="true" type="button">' + ZOOM_SVG + 'Ver maior</button></figcaption>';
+          var open = function () { openLightbox(list, i); };
+          fig.querySelector('img').addEventListener('click', open);
+          fig.querySelector('.zoom').addEventListener('click', open);
+          g.appendChild(fig);
+        });
+        container.innerHTML = ''; container.appendChild(g);
+      });
+  }
+
+  /* ---- Banner em imagem (ampliável), se fornecido ---- */
+  function buildBanner(container) {
+    if (container.dataset.built) return; container.dataset.built = '1';
+    var raw = container.getAttribute('data-banner'); if (!raw) return;
+    var src = encPath(raw);
+    probeImg(src).then(function (ok) {
+      if (!ok) return;
+      container.innerHTML = '<img src="' + esc(src) + '" alt="Banner do trabalho">';
+      container.querySelector('img').addEventListener('click', function () { openLightbox([{ src: src, label: 'Banner do trabalho' }], 0); });
+    });
+  }
+
+  /* ---- Visualizador de PDF local (tela cheia + download) ---- */
+  function pdfPendingHTML(path) {
+    return '<div class="pdfviewer__pending"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><div class="t">Artigo ainda não enviado.</div><div>Coloque o PDF em <code>' + esc(path) + '</code> e ele aparece aqui automaticamente.</div></div>';
+  }
+  function pdfViewerHTML(path, dl) {
+    return '<div class="pdfviewer__bar"><span class="ttl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Artigo completo (PDF)</span>' +
+      '<span class="pdfviewer__tools">' +
+      '<button class="btn btn-ghost btn-sm" type="button" data-fs>Tela cheia</button>' +
+      '<a class="btn btn-ghost btn-sm" href="' + esc(path) + '" target="_blank" rel="noopener">Abrir em nova aba</a>' +
+      '<a class="btn btn-primary btn-sm" href="' + esc(path) + '" download="' + esc(dl) + '">Baixar</a>' +
+      '</span></div>' +
+      '<div class="pdfviewer__stage"><iframe src="' + esc(path) + '#view=FitH&toolbar=1" title="Artigo (PDF)" loading="lazy"></iframe></div>';
+  }
+  function buildPDF(container) {
+    if (container.dataset.built) return; container.dataset.built = '1';
+    var path = container.getAttribute('data-pdf');
+    var src = encPath(path);
+    var dl = container.getAttribute('data-dl') || 'documento.pdf';
+    container.innerHTML = '<div class="pdfviewer__pending">Verificando documento…</div>';
+    function render(present) {
+      if (present === false) { container.innerHTML = pdfPendingHTML(path); return; }
+      container.innerHTML = pdfViewerHTML(src, dl);
+      container.querySelector('[data-fs]').addEventListener('click', function () {
+        var stage = container.querySelector('.pdfviewer__stage');
+        if (document.fullscreenElement) { document.exitFullscreen(); }
+        else if (stage.requestFullscreen) { stage.requestFullscreen(); }
+        else if (stage.webkitRequestFullscreen) { stage.webkitRequestFullscreen(); }
+      });
+    }
+    fetch(src, { method: 'HEAD' }).then(function (r) { render(r.ok); }).catch(function () { render(true); });
+  }
+
+  /* ---- Modais ---- */
+  var openModalEl = null;
+  function lockScroll(on) { document.body.classList.toggle('modal-open', on); }
+  function buildModalContent(m) {
+    m.querySelectorAll('[data-gallery]').forEach(buildGallery);
+    m.querySelectorAll('[data-banner]').forEach(buildBanner);
+    m.querySelectorAll('[data-pdf]').forEach(buildPDF);
+  }
+  function showModal(id) {
+    var m = document.getElementById(id); if (!m) return;
+    buildModalContent(m);
+    m.classList.add('open'); openModalEl = m; lockScroll(true);
+    var c = m.querySelector('[data-close]'); if (c) c.focus();
+  }
+  function hideModal(m) { if (!m) return; m.classList.remove('open'); if (openModalEl === m) openModalEl = null; if (!document.querySelector('.modal.open')) lockScroll(false); }
+  document.querySelectorAll('[data-open]').forEach(function (b) { b.addEventListener('click', function () { showModal(b.getAttribute('data-open')); }); });
+  document.querySelectorAll('.modal').forEach(function (m) {
+    m.addEventListener('click', function (e) { if (e.target === m) hideModal(m); });
+    m.querySelectorAll('[data-close]').forEach(function (c) { c.addEventListener('click', function () { hideModal(m); }); });
+  });
+
+  /* ---- Teclado ---- */
+  document.addEventListener('keydown', function (e) {
+    if (lb.classList.contains('open')) {
+      if (e.key === 'Escape') closeLightbox();
+      else if (e.key === 'ArrowLeft') lbNav(-1);
+      else if (e.key === 'ArrowRight') lbNav(1);
+      return;
+    }
+    if (e.key === 'Escape') { if (document.fullscreenElement) return; if (openModalEl) hideModal(openModalEl); }
+  });
+})();
+</script>
+
+</body>
+</html>

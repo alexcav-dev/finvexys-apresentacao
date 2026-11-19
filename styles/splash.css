@@ -1,0 +1,184 @@
+/* =========================================================================
+ * Finvexys Finance — Splash visual autônomo (somente identidade visual).
+ * Traduz para CSS puro os utilitários Tailwind + tokens do projeto original.
+ * Classes prefixadas com `fvx-` para não colidir com o CSS do novo projeto.
+ *
+ * Caminhos de asset usam a RAIZ pública (`/...`). Copie a pasta `assets/`
+ * deste pacote para a `public/` do novo projeto (ver README):
+ *   assets/finvexys-logo-sidebar-cropped.png -> public/finvexys-logo-sidebar-cropped.png
+ *   assets/sidebar-bg.webp                   -> public/sidebar-bg.webp
+ *   assets/fonts/inter-latin-wght-normal.woff2 -> public/fonts/inter-latin-wght-normal.woff2
+ * ========================================================================= */
+
+/* ----- Fonte Inter (auto-hospedada, variável, subconjunto latin) ----- */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('/fonts/inter-latin-wght-normal.woff2') format('woff2');
+}
+
+/* ----- Tokens visuais (apenas os usados pelo Splash) ----- */
+:root {
+  --fvx-primary: #2563eb;
+  --fvx-ring-cyan: #22d3ee;
+  --fvx-ring-orb: #bfffff;
+  --fvx-ink: #0f172a;
+  --fvx-ink-muted: #64748b;
+  --fvx-font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+}
+
+/* ----- Palco: fundo = véu claro sobre a onda (mesmo asset do app) ----- */
+.fvx-splash {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 2.5rem 1.5rem;
+  z-index: 50;
+  font-family: var(--fvx-font);
+  background-color: #eef4fd;
+  background-image:
+    linear-gradient(rgba(248, 251, 255, 0.8), rgba(238, 244, 253, 0.84)),
+    url('/sidebar-bg.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transition: opacity 450ms ease-out;
+  opacity: 1;
+}
+.fvx-splash.is-exiting {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.fvx-splash__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 28rem;
+}
+
+/* ----- Anel: container quadrado com a logo centralizada ----- */
+.fvx-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 14rem; /* 224px (base) */
+  height: 14rem;
+}
+@media (min-width: 640px) {
+  .fvx-ring {
+    width: 16rem; /* 256px (>= sm) */
+    height: 16rem;
+  }
+}
+
+/* Glows difusos (profundidade premium) */
+.fvx-ring__glow {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+}
+.fvx-ring__glow--primary {
+  inset: 1rem;
+  background: color-mix(in srgb, var(--fvx-primary) 15%, transparent);
+  filter: blur(40px);
+  animation: fvx-splash-pulse 3.2s ease-in-out infinite;
+}
+.fvx-ring__glow--cyan {
+  inset: 2rem;
+  background: color-mix(in srgb, var(--fvx-ring-cyan) 18%, transparent);
+  filter: blur(40px);
+}
+
+.fvx-ring__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Rotor: só o grupo do arco "cometa" gira (horário, 1,5s linear, contínuo) */
+.fvx-ring__rotor {
+  transform-origin: 50% 50%;
+  animation: fvx-splash-spin 1.5s linear infinite;
+}
+
+/* Logo oficial — estável, proporções preservadas */
+.fvx-ring__logo {
+  position: relative;
+  width: 56%;
+  max-width: 168px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 1px rgb(15 23 42 / 0.12));
+}
+
+.fvx-splash__title {
+  margin-top: 2.5rem;
+  text-align: center;
+  font-size: 1.25rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--fvx-ink);
+}
+@media (min-width: 640px) {
+  .fvx-splash__title {
+    font-size: 1.5rem;
+  }
+}
+.fvx-splash__subtitle {
+  margin-top: 0.5rem;
+  max-width: 24rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--fvx-ink-muted);
+  animation: fvx-splash-fade-in 0.4s ease;
+}
+
+/* ----- Keyframes ----- */
+@keyframes fvx-splash-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes fvx-splash-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.97);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.03);
+  }
+}
+@keyframes fvx-splash-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ----- Acessibilidade: respeita redução de movimento do sistema ----- */
+@media (prefers-reduced-motion: reduce) {
+  .fvx-ring__rotor,
+  .fvx-ring__glow--primary,
+  .fvx-splash__subtitle,
+  .fvx-splash {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
